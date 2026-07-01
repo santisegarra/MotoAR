@@ -1,0 +1,2488 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MotoAR — Catálogo y Comparador</title>
+<style>
+:root{
+  --bg:#0d0f13;--bg2:#14171e;--card:#191c24;--card2:#1e2129;
+  --line:#252830;--line2:#2e3240;
+  --txt:#eef0f4;--muted:#8a909c;--muted2:#6b7180;
+  --accent:#e2231a;--accent2:#ff5b4d;
+  --gold:#d4a853;--gold2:#f0c877;
+  --green:#3ddc84;--blue:#4ca5ff;
+  --radius:14px;--sidebar:260px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;
+  background:var(--bg);color:var(--txt);line-height:1.5;
+  display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:40;
+  background:rgba(13,15,19,.92);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line2);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 24px;gap:16px;}
+.logo{font-size:22px;font-weight:900;letter-spacing:-0.5px;
+  display:flex;align-items:center;gap:8px;cursor:pointer;}
+.logo .dot{width:9px;height:9px;border-radius:50%;
+  background:var(--accent);box-shadow:0 0 12px var(--accent2);}
+.logo .sub{color:var(--muted2);font-size:12px;font-weight:500;letter-spacing:.3px;margin-top:2px;}
+.topright{display:flex;align-items:center;gap:10px;}
+.searchbox{display:flex;align-items:center;gap:8px;
+  background:var(--card2);border:1px solid var(--line2);border-radius:999px;
+  padding:8px 16px;min-width:220px;}
+.searchbox input{background:none;border:none;outline:none;color:var(--txt);
+  font-size:14px;width:100%;}
+.searchbox input::placeholder{color:var(--muted2);}
+.cmpbtn{background:var(--gold);color:#1a1408;font-weight:800;
+  padding:9px 18px;border-radius:999px;border:none;cursor:pointer;
+  font-size:13px;display:flex;align-items:center;gap:7px;white-space:nowrap;
+  transition:.2s;}
+.cmpbtn:hover{background:var(--gold2);}
+.cmpbtn .cnt{background:#1a1408;color:var(--gold);border-radius:999px;
+  padding:1px 7px;font-size:11px;}
+
+/* LAYOUT */
+.layout{display:flex;flex:1;}
+
+/* SIDEBAR */
+aside{width:var(--sidebar);flex-shrink:0;
+  background:var(--bg2);border-right:1px solid var(--line);
+  position:sticky;top:57px;height:calc(100vh - 57px);
+  overflow-y:auto;padding:20px 0;}
+aside::-webkit-scrollbar{width:4px;}
+aside::-webkit-scrollbar-track{background:transparent;}
+aside::-webkit-scrollbar-thumb{background:var(--line2);border-radius:4px;}
+.aside-section{padding:0 16px 18px;}
+.aside-title{font-size:10px;font-weight:800;letter-spacing:1.2px;
+  text-transform:uppercase;color:var(--muted2);margin-bottom:10px;}
+.filter-item{display:flex;align-items:center;gap:9px;padding:7px 10px;
+  border-radius:9px;cursor:pointer;font-size:13px;color:var(--muted);
+  transition:.15s;margin-bottom:2px;user-select:none;}
+.filter-item:hover{background:var(--card2);color:var(--txt);}
+.filter-item.active{background:rgba(226,35,26,.12);color:var(--accent2);
+  font-weight:600;}
+.filter-item .fi-dot{width:8px;height:8px;border-radius:50%;
+  background:var(--line2);flex-shrink:0;transition:.15s;}
+.filter-item.active .fi-dot{background:var(--accent2);}
+.filter-item .fi-count{margin-left:auto;font-size:11px;color:var(--muted2);}
+.cc-range{padding:0 4px;}
+.cc-range input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer;}
+.cc-labels{display:flex;justify-content:space-between;font-size:11px;
+  color:var(--muted2);margin-top:4px;}
+.hr{height:1px;background:var(--line);margin:4px 0 18px;}
+.clear-btn{width:100%;padding:8px;border-radius:9px;border:1px solid var(--line2);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
+  font-weight:600;margin-top:6px;}
+.clear-btn:hover{color:var(--txt);border-color:var(--txt);}
+
+/* MAIN */
+main{flex:1;padding:24px 28px 60px;}
+.results-bar{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;gap:12px;}
+.results-bar .rcount{font-size:14px;color:var(--muted);}
+.results-bar .rcount b{color:var(--txt);}
+.sort-sel{background:var(--card2);border:1px solid var(--line2);
+  border-radius:999px;color:var(--txt);padding:6px 14px;font-size:13px;
+  cursor:pointer;outline:none;}
+
+/* GRID */
+.grid{display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:18px;}
+.card{background:linear-gradient(160deg,var(--card2),var(--card));
+  border:1px solid var(--line);border-radius:var(--radius);
+  overflow:hidden;display:flex;flex-direction:column;
+  transition:.22s;position:relative;cursor:pointer;}
+.card:hover{transform:translateY(-3px);border-color:var(--line2);
+  box-shadow:0 16px 40px -18px rgba(0,0,0,.7);}
+.card .segtag{position:absolute;top:10px;left:10px;z-index:2;
+  background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  padding:3px 9px;font-size:10px;font-weight:700;
+  border-radius:999px;letter-spacing:.5px;text-transform:uppercase;
+  color:var(--gold);border:1px solid rgba(212,168,83,.35);}
+.card .chk{position:absolute;top:10px;right:10px;z-index:3;}
+.card .chk input{width:20px;height:20px;accent-color:var(--gold);cursor:pointer;}
+.imgwrap{height:175px;background:#0b0c10;overflow:hidden;position:relative;}
+.imgwrap img{width:100%;height:100%;object-fit:cover;transition:.4s;}
+.card:hover .imgwrap img{transform:scale(1.07);}
+.cbody{padding:14px 16px 16px;display:flex;flex-direction:column;gap:8px;flex:1;}
+.brandline{font-size:11px;color:var(--accent2);font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;}
+.cbody h3{font-size:16px;font-weight:800;line-height:1.2;}
+.mini-specs{display:grid;grid-template-columns:1fr 1fr;gap:4px 8px;
+  font-size:11.5px;color:var(--muted);
+  border-top:1px dashed var(--line2);padding-top:8px;}
+.mini-specs b{color:var(--txt);font-weight:700;}
+.card-actions{display:flex;gap:7px;margin-top:auto;padding-top:4px;}
+.cbtn{flex:1;text-align:center;padding:9px 8px;border-radius:9px;
+  font-weight:700;font-size:12px;cursor:pointer;border:1px solid var(--line2);
+  transition:.15s;}
+.cbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.cbtn.primary:hover{background:var(--accent2);}
+.cbtn.ghost{background:transparent;color:var(--muted);}
+.cbtn.ghost:hover{color:var(--txt);border-color:var(--muted);}
+.empty{grid-column:1/-1;text-align:center;padding:60px 20px;
+  color:var(--muted);font-size:16px;}
+
+/* DETAIL PANEL — Nike/Adidas style */
+.panel-overlay{display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:60;
+  align-items:flex-start;justify-content:center;padding:40px 16px;overflow:auto;}
+.panel-overlay.show{display:flex;}
+.panel{background:var(--bg2);border:1px solid var(--line2);border-radius:20px;
+  max-width:1020px;width:100%;display:grid;grid-template-columns:1fr 1fr;
+  overflow:hidden;position:relative;min-height:580px;}
+.panel-close{position:absolute;top:16px;right:16px;z-index:5;
+  background:rgba(0,0,0,.5);border:1px solid var(--line2);
+  border-radius:50%;width:36px;height:36px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;font-size:18px;color:var(--muted);
+  backdrop-filter:blur(4px);transition:.15s;}
+.panel-close:hover{color:var(--txt);border-color:var(--muted);}
+/* left: gallery */
+.panel-gallery{background:#0b0c10;position:relative;display:flex;
+  flex-direction:column;}
+.panel-main-img{flex:1;overflow:hidden;min-height:320px;}
+.panel-main-img img{width:100%;height:100%;object-fit:cover;
+  transition:.4s;display:block;}
+.panel-thumbs{display:flex;gap:6px;padding:10px;background:#0e0f14;
+  overflow-x:auto;}
+.panel-thumbs::-webkit-scrollbar{height:3px;}
+.panel-thumbs::-webkit-scrollbar-thumb{background:var(--line2);}
+.thumb{width:64px;height:50px;border-radius:7px;overflow:hidden;
+  border:2px solid transparent;cursor:pointer;flex-shrink:0;transition:.15s;}
+.thumb.active{border-color:var(--gold);}
+.thumb img{width:100%;height:100%;object-fit:cover;}
+/* right: info */
+.panel-info{padding:32px 30px 28px;overflow-y:auto;display:flex;
+  flex-direction:column;gap:16px;}
+.panel-info::-webkit-scrollbar{width:3px;}
+.panel-info::-webkit-scrollbar-thumb{background:var(--line2);}
+.pi-seg{font-size:10px;font-weight:800;letter-spacing:1px;
+  text-transform:uppercase;color:var(--gold);}
+.pi-brand{font-size:12px;color:var(--accent2);font-weight:700;
+  letter-spacing:.5px;text-transform:uppercase;margin-top:2px;}
+.pi-name{font-size:26px;font-weight:900;line-height:1.15;letter-spacing:-.3px;}
+.pi-cc{font-size:13px;color:var(--muted);margin-top:-4px;}
+.pi-divider{height:1px;background:var(--line2);}
+.specs-table{display:grid;grid-template-columns:1fr 1fr;gap:10px 16px;}
+.spec-item .sl{font-size:10.5px;color:var(--muted2);font-weight:600;
+  text-transform:uppercase;letter-spacing:.5px;}
+.spec-item .sv{font-size:14px;font-weight:700;color:var(--txt);margin-top:2px;}
+.pi-actions{display:flex;flex-direction:column;gap:8px;margin-top:auto;}
+.pibtn{width:100%;padding:13px 18px;border-radius:11px;
+  font-weight:800;font-size:14px;cursor:pointer;border:none;
+  text-align:center;text-decoration:none;display:block;transition:.2s;}
+.pibtn.ml{background:var(--accent);color:#fff;}
+.pibtn.ml:hover{background:var(--accent2);}
+.pibtn.fi{background:transparent;border:1px solid var(--line2);
+  color:var(--muted);}
+.pibtn.fi:hover{color:var(--txt);border-color:var(--muted);}
+.cmp-toggle{display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--muted);cursor:pointer;}
+.cmp-toggle input{accent-color:var(--gold);width:17px;height:17px;}
+
+/* COMPARE MODAL */
+.cmp-overlay{display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(6px);z-index:70;
+  align-items:flex-start;justify-content:center;padding:30px 16px;overflow:auto;}
+.cmp-overlay.show{display:flex;}
+.cmp-modal{background:var(--bg2);border:1px solid var(--line2);
+  border-radius:18px;max-width:1100px;width:100%;padding:28px;
+  position:relative;}
+.cmp-modal h2{margin-bottom:16px;font-size:20px;}
+.cmp-close{position:absolute;top:18px;right:22px;font-size:22px;
+  cursor:pointer;color:var(--muted);background:none;border:none;}
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;}
+.cmp-table th,.cmp-table td{padding:10px 12px;
+  border-bottom:1px solid var(--line);text-align:left;vertical-align:middle;}
+.cmp-table th{color:var(--gold);font-size:12px;letter-spacing:.3px;
+  background:var(--bg2);position:sticky;top:0;}
+.cmp-table td.lbl{color:var(--muted);font-weight:600;white-space:nowrap;}
+.cmp-table img{width:90px;height:58px;object-fit:cover;border-radius:7px;}
+.no-cmp{color:var(--muted);text-align:center;padding:16px;font-size:14px;}
+
+footer{border-top:1px solid var(--line);padding:24px;
+  text-align:center;color:var(--muted2);font-size:12px;}
+footer a{color:var(--accent2);}
+
+@media(max-width:900px){
+  .panel{grid-template-columns:1fr;}
+  .panel-gallery{min-height:280px;}
+}
+@media(max-width:700px){
+  aside{display:none;}
+  main{padding:16px;}
+  .grid{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:480px){
+  .grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo" onclick="resetAll()">
+    <span class="dot"></span>
+    <div>MotoAR<div class="sub">Catálogo · Comparador</div></div>
+  </div>
+  <div class="topright">
+    <div class="searchbox">
+      <svg width="14" height="14" fill="none" stroke="#8a909c" stroke-width="2"
+        viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="search" type="text" placeholder="Buscar marca o modelo…"
+        oninput="render()">
+    </div>
+    <button class="cmpbtn" onclick="openCompare()">
+      ⚖ Comparar <span class="cnt" id="cmpCount">0</span>
+    </button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <aside>
+    <div class="aside-section">
+      <div class="aside-title">Segmento</div>
+      <div id="segFilters"></div>
+    </div>
+    <div class="hr"></div>
+    <div class="aside-section">
+      <div class="aside-title">Cilindrada (cc)</div>
+      <div class="cc-range" style="margin-top:6px;">
+        <input type="range" id="ccMin" min="70" max="754" value="70" step="1"
+          oninput="updateCC()">
+        <input type="range" id="ccMax" min="70" max="754" value="754" step="1"
+          oninput="updateCC()">
+      </div>
+      <div class="cc-labels">
+        <span id="ccMinLabel">70 cc</span>
+        <span id="ccMaxLabel">754 cc</span>
+      </div>
+      <div style="margin-top:10px;">
+        <div class="aside-title" style="margin-bottom:6px;">Rango rápido</div>
+        <div id="ccPresets"></div>
+      </div>
+    </div>
+    <div class="hr"></div>
+    <div class="aside-section">
+      <div class="aside-title">Marca</div>
+      <div id="brandFilters"></div>
+    </div>
+    <div class="aside-section">
+      <button class="clear-btn" onclick="resetAll()">✕ Limpiar filtros</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main>
+    <div class="results-bar">
+      <div class="rcount" id="rcount"></div>
+      <select class="sort-sel" id="sortSel" onchange="render()">
+        <option value="az">A → Z</option>
+        <option value="ccasc">CC ↑ menor a mayor</option>
+        <option value="ccdesc">CC ↓ mayor a menor</option>
+      </select>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+
+<!-- DETAIL PANEL -->
+<div class="panel-overlay" id="panelOverlay" onclick="closePanelIfBG(event)">
+  <div class="panel" id="panel">
+    <button class="panel-close" onclick="closePanel()">✕</button>
+    <div class="panel-gallery">
+      <div class="panel-main-img"><img id="pMainImg" src="" alt=""></div>
+      <div class="panel-thumbs" id="pThumbs"></div>
+    </div>
+    <div class="panel-info" id="pInfo"></div>
+  </div>
+</div>
+
+<!-- COMPARE MODAL -->
+<div class="cmp-overlay" id="cmpOverlay" onclick="closeCmpIfBG(event)">
+  <div class="cmp-modal">
+    <button class="cmp-close" onclick="closeCompare()">✕</button>
+    <h2>Comparador de motos</h2>
+    <div id="cmpContent"></div>
+  </div>
+</div>
+
+<footer>
+  Catálogo basado en datos reales de <a href="https://motozuni.com/motos" target="_blank">motozuni.com</a>
+  y publicaciones de su tienda oficial en Mercado Libre Argentina · Proyecto independiente con fines comparativos
+</footer>
+
+<script>
+const MOTOS = [
+  {
+    "marca": "Bajaj",
+    "modelo": "Boxer CT 100",
+    "cc": 100,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/wFPHzZW2/1ed46275a82e.webp",
+    "slug": "bajaj-boxer-ct-100",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-boxer-ct-100",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-boxer+ct+100&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Energy 110 RT",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/84T9sLyR/1ed338090b2c.webp",
+    "slug": "corven-energy-110-rt",
+    "ficha": "https://motozuni.com/motos/modelo/corven-energy-110-rt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-energy+110+rt&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Energy 110 Tuning",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/HW9Gv7F/12af8339e7a3.webp",
+    "slug": "corven-energy-110-tuning",
+    "ficha": "https://motozuni.com/motos/modelo/corven-energy-110-tuning",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-energy+110+tuning&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Energy 110 AD",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/dwX71X5C/2af22facb703.webp",
+    "slug": "corven-energy-110-ad",
+    "ficha": "https://motozuni.com/motos/modelo/corven-energy-110-ad",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-energy+110+ad&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Smash 110 Automática",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "gilera-smash-110-automatica",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smash-110-automatica",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smash+110+automática&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Smash 110 VS Full",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/zH2JJCB6/21a186e5082e.webp",
+    "slug": "gilera-smash-110-vs-full",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smash-110-vs-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smash+110+vs+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Smash 110 VS",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "gilera-smash-110-vs",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smash-110-vs",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smash+110+vs&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Smash 110 Tuning",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "gilera-smash-110-tuning",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smash-110-tuning",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smash+110+tuning&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Smash 110 R Tuning",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "gilera-smash-110-r-tuning",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smash-110-r-tuning",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smash+110+r+tuning&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Mirage 110 RT",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "corven-mirage-110-rt",
+    "ficha": "https://motozuni.com/motos/modelo/corven-mirage-110-rt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-mirage+110+rt&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Mirage 110 AD",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "corven-mirage-110-ad",
+    "ficha": "https://motozuni.com/motos/modelo/corven-mirage-110-ad",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-mirage+110+ad&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "LD 110 Max AD",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "mondial-ld-110-max-ad",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-ld-110-max-ad",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-ld+110+max+ad&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "LD 110 RT Automática",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "mondial-ld-110-rt-automatica",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-ld-110-rt-automatica",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-ld+110+rt+automática&seller_id=motozuni"
+  },
+  {
+    "marca": "Ika",
+    "modelo": "Slalom 110 Full",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "ika-slalom-110-full",
+    "ficha": "https://motozuni.com/motos/modelo/ika-slalom-110-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=ika-slalom+110+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Ika",
+    "modelo": "Slalom 110 Base",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "ika-slalom-110-base",
+    "ficha": "https://motozuni.com/motos/modelo/ika-slalom-110-base",
+    "ml": "https://listado.mercadolibre.com.ar/_q=ika-slalom+110+base&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Crono 110 Eco",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "keller-crono-110-eco",
+    "ficha": "https://motozuni.com/motos/modelo/keller-crono-110-eco",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-crono+110+eco&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Crono 110 Full",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "keller-crono-110-full",
+    "ficha": "https://motozuni.com/motos/modelo/keller-crono-110-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-crono+110+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "LD 110 Max RT",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "mondial-ld-110-max-rt",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-ld-110-max-rt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-ld+110+max+rt&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "LD 110 S Full",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "mondial-ld-110-s-full",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-ld-110-s-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-ld+110+s+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Qu 110 Base",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "siam-qu-110-base",
+    "ficha": "https://motozuni.com/motos/modelo/siam-qu-110-base",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-qu+110+base&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Qu 110 Full",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "siam-qu-110-full",
+    "ficha": "https://motozuni.com/motos/modelo/siam-qu-110-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-qu+110+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Due 110 Classic",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "zanella-due-110-classic",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-due-110-classic",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-due+110+classic&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZB 110 LT",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "zanella-zb-110-lt",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zb-110-lt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zb+110+lt&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZB 110 RT",
+    "cc": 107,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "zanella-zb-110-rt",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zb-110-rt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zb+110+rt&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz 110 V8",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/j9f27tX9/d38d1452353b.webp",
+    "slug": "motomel-blitz-110-v8",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-110-v8",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+110+v8&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "DLX 110",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/jPshxkr3/19a572789080.webp",
+    "slug": "motomel-dlx-110",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-dlx-110",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-dlx+110&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz 110 Full",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/4ZXtKr6z/6c69f4eaabd0.webp",
+    "slug": "motomel-blitz-110-full",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-110-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+110+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz 110 Tuning",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/SX9mzcN4/056a9f5c28d0.webp",
+    "slug": "motomel-blitz-110-tuning",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-110-tuning",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+110+tuning&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz 110 Black",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "motomel-blitz-110-black",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-110-black",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+110+black&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz 110 Automática",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "motomel-blitz-110-automatica",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-110-automatica",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+110+automática&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Max 110",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "motomel-max-110",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-max-110",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-max+110&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz 110 Plus",
+    "cc": 108,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "motomel-blitz-110-plus",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-110-plus",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+110+plus&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "Neo NX 110",
+    "cc": 109.7,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "tvs-neo-nx-110",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-neo-nx-110",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-neo+nx+110&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Qu Cargo 110",
+    "cc": 110,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "siam-qu-cargo-110",
+    "ficha": "https://motozuni.com/motos/modelo/siam-qu-cargo-110",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-qu+cargo+110&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Blitz One 110",
+    "cc": 110,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "motomel-blitz-one-110",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-blitz-one-110",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-blitz+one+110&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser NS 125",
+    "cc": 124.4,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-rouser-ns-125",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-ns-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+ns+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Agility RS 125 Naked",
+    "cc": 124.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-agility-rs-125-naked",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-agility-rs-125-naked",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-agility+rs+125+naked&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "RV 125",
+    "cc": 124,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "mondial-rv-125",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-rv-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-rv+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Crono 125 Tuning",
+    "cc": 124,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "keller-crono-125-tuning",
+    "ficha": "https://motozuni.com/motos/modelo/keller-crono-125-tuning",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-crono+125+tuning&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Like 125",
+    "cc": 124.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-like-125",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-like-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-like+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Agility 125",
+    "cc": 124.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-agility-125",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-agility-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-agility+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Micare 125",
+    "cc": 124,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-micare-125",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-micare-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-micare+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Skua 125",
+    "cc": 124,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "motomel-skua-125",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-skua-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-skua+125&seller_id=motozuni"
+  },
+  {
+    "marca": "SYM",
+    "modelo": "Orbit II 125",
+    "cc": 124.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "sym-orbit-ii-125",
+    "ficha": "https://motozuni.com/motos/modelo/sym-orbit-ii-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=sym-orbit+ii+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "DUE 125 R Sport",
+    "cc": 124,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "zanella-due-125-r-sport",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-due-125-r-sport",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-due+125+r+sport&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZB 125 R Sport",
+    "cc": 124,
+    "seg": "CUB",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "zanella-zb-125-r-sport",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zb-125-r-sport",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zb+125+r+sport&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "Ntorq 125",
+    "cc": 124.8,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "tvs-ntorq-125",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-ntorq-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-ntorq+125&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "Raider 125",
+    "cc": 124.8,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "tvs-raider-125",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-raider-125",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-raider+125&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZB 125 R",
+    "cc": 124,
+    "seg": "CUB",
+    "img": "https://i.ibb.co/h18wYPs6/910975fad4b3.webp",
+    "slug": "zanella-zb-125-r",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zb-125-r",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zb+125+r&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Boxer 150 AT",
+    "cc": 144.8,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/rKs0nRqT/c1a78581fadb.webp",
+    "slug": "bajaj-boxer-150-at",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-boxer-150-at",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-boxer+150+at&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TNT 15",
+    "cc": 148,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/hRzYCCMd/48e4a762d99d.webp",
+    "slug": "benelli-tnt-15",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-tnt-15",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-tnt+15&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Hunter 150 RT",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/Gv99P35G/88a081b51519.webp",
+    "slug": "corven-hunter-150-rt",
+    "ficha": "https://motozuni.com/motos/modelo/corven-hunter-150-rt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-hunter+150+rt&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax 150",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-150",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Expert 150 DOT",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "corven-expert-150-dot",
+    "ficha": "https://motozuni.com/motos/modelo/corven-expert-150-dot",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-expert+150+dot&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Hunter 150 R2",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "corven-hunter-150-r2",
+    "ficha": "https://motozuni.com/motos/modelo/corven-hunter-150-r2",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-hunter+150+r2&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Sahel 150",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "gilera-sahel-150",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-sahel-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-sahel+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser P150",
+    "cc": 149.6,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-rouser-p150",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-p150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+p150&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Expert Milano 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "corven-expert-milano-150",
+    "ficha": "https://motozuni.com/motos/modelo/corven-expert-milano-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-expert+milano+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax 150 R3",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-150-r3",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-150-r3",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+150+r3&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Hunter 150 Full",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "corven-hunter-150-full",
+    "ficha": "https://motozuni.com/motos/modelo/corven-hunter-150-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-hunter+150+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Ika",
+    "modelo": "Durban 150",
+    "cc": 149,
+    "seg": "ENDURO",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "ika-durban-150",
+    "ficha": "https://motozuni.com/motos/modelo/ika-durban-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=ika-durban+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Keeway",
+    "modelo": "RK 150",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "keeway-rk-150",
+    "ficha": "https://motozuni.com/motos/modelo/keeway-rk-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keeway-rk+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Miracle 150",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "keller-miracle-150",
+    "ficha": "https://motozuni.com/motos/modelo/keller-miracle-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-miracle+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "MD 150 Allegro",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "mondial-md-150-allegro",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-md-150-allegro",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-md+150+allegro&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "RD 150 AD",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "mondial-rd-150-ad",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-rd-150-ad",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-rd+150+ad&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "RD 150 RT",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "mondial-rd-150-rt",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-rd-150-rt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-rd+150+rt&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "TD 150",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "mondial-td-150",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-td-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-td+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "W 150 Cafe Racer",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "mondial-w-150-cafe-racer",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-w-150-cafe-racer",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-w+150+cafe+racer&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "MD 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "mondial-md-150",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-md-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-md+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "Duomo 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "gilera-duomo-150",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-duomo-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-duomo+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Ika",
+    "modelo": "Spot 150",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "ika-spot-150",
+    "ficha": "https://motozuni.com/motos/modelo/ika-spot-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=ika-spot+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Ika",
+    "modelo": "Spot 150 Full",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "ika-spot-150-full",
+    "ficha": "https://motozuni.com/motos/modelo/ika-spot-150-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=ika-spot+150+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Stratus 150",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/zVnGDDCg/8a42e428e358.webp",
+    "slug": "keller-stratus-150",
+    "ficha": "https://motozuni.com/motos/modelo/keller-stratus-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-stratus+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Stratus 150 Full",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/hRhjT6qB/8cb13b2c73cd.webp",
+    "slug": "keller-stratus-150-full",
+    "ficha": "https://motozuni.com/motos/modelo/keller-stratus-150-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-stratus+150+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Sygnus 150",
+    "cc": 149.5,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/350YQcSp/aad37c068c20.webp",
+    "slug": "keller-sygnus-150",
+    "ficha": "https://motozuni.com/motos/modelo/keller-sygnus-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-sygnus+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "RD 150 Classic",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/20pG1fBk/57a1b4cd32ae.webp",
+    "slug": "mondial-rd-150-classic",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-rd-150-classic",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-rd+150+classic&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "HD 150 Custom",
+    "cc": 149,
+    "seg": "CUSTOM",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "mondial-hd-150-custom",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-hd-150-custom",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-hd+150+custom&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "S2 150 Base",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "motomel-s2-150-base",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-s2-150-base",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-s2+150+base&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "S2 150 Full",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "motomel-s2-150-full",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-s2-150-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-s2+150+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Victory 150",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "motomel-victory-150",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-victory-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-victory+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Trender 150",
+    "cc": 149.6,
+    "seg": "STREET",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "siam-trender-150",
+    "ficha": "https://motozuni.com/motos/modelo/siam-trender-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-trender+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Quirion 150",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "siam-quirion-150",
+    "ficha": "https://motozuni.com/motos/modelo/siam-quirion-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-quirion+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Nomad 150",
+    "cc": 149,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "siam-nomad-150",
+    "ficha": "https://motozuni.com/motos/modelo/siam-nomad-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-nomad+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Morbidelli",
+    "modelo": "SC 150 RE",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "morbidelli-sc-150-re",
+    "ficha": "https://motozuni.com/motos/modelo/morbidelli-sc-150-re",
+    "ml": "https://listado.mercadolibre.com.ar/_q=morbidelli-sc+150+re&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Skua 150 Silver",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "motomel-skua-150-silver",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-skua-150-silver",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-skua+150+silver&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Skua 150",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "motomel-skua-150",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-skua-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-skua+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Strato Euro 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "motomel-strato-euro-150",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-strato-euro-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-strato+euro+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Strato Alpino 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "motomel-strato-alpino-150",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-strato-alpino-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-strato+alpino+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Trender 150 Desert",
+    "cc": 149,
+    "seg": "STREET",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "siam-trender-150-desert",
+    "ficha": "https://motozuni.com/motos/modelo/siam-trender-150-desert",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-trender+150+desert&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "RX 150 Z7",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-rx-150-z7",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-rx-150-z7",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-rx+150+z7&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "RX 150 Z7 Full",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-rx-150-z7-full",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-rx-150-z7-full",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-rx+150+z7+full&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Styler 150 RS",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "zanella-styler-150-rs",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-styler-150-rs",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-styler+150+rs&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Spirit 150",
+    "cc": 149,
+    "seg": "CUSTOM",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "siam-spirit-150",
+    "ficha": "https://motozuni.com/motos/modelo/siam-spirit-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-spirit+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Patagonian 150 ST",
+    "cc": 149,
+    "seg": "CUSTOM",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-patagonian-150-st",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-patagonian-150-st",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-patagonian+150+st&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Ceccato 150 R",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-ceccato-150-r",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-ceccato-150-r",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-ceccato+150+r&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Sapucai 150",
+    "cc": 149,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-sapucai-150",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-sapucai-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-sapucai+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Exclusive 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/3yQP6ywN/63cb1d5d4973.webp",
+    "slug": "zanella-exclusive-150",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-exclusive-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-exclusive+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Exclusive 150 Edizione",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/NgDjtwqd/26164b521032.webp",
+    "slug": "zanella-exclusive-150-edizione",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-exclusive-150-edizione",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-exclusive+150+edizione&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Cruiser X 150",
+    "cc": 149.6,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/Rk4VjYZ6/ca92db540223.webp",
+    "slug": "zanella-cruiser-x-150",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-cruiser-x-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-cruiser+x+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZT 150",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://i.ibb.co/S44hKrnR/6cd8590e014e.webp",
+    "slug": "zanella-zt-150",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zt-150",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zt+150&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZR 150 OHC",
+    "cc": 149,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "zanella-zr-150-ohc",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zr-150-ohc",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zr+150+ohc&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Super 8",
+    "cc": 150,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-super-8-super-8",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-super-8-super-8",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-super+8&seller_id=motozuni"
+  },
+  {
+    "marca": "Suzuki",
+    "modelo": "Gixxer 150i",
+    "cc": 155,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "suzuki-gixxer-150i",
+    "ficha": "https://motozuni.com/motos/modelo/suzuki-gixxer-150i",
+    "ml": "https://listado.mercadolibre.com.ar/_q=suzuki-gixxer+150i&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "RTR 160 4V",
+    "cc": 159.7,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "tvs-rtr-160-4v",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-rtr-160-4v",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-rtr+160+4v&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser NS 160",
+    "cc": 160.3,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-rouser-ns-160",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-ns-160",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+ns+160&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Agility City 200i",
+    "cc": 163,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-agility-city-200i",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-agility-city-200i",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-agility+city+200i&seller_id=motozuni"
+  },
+  {
+    "marca": "Kymco",
+    "modelo": "Like 200i",
+    "cc": 163,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "kymco-like-200i",
+    "ficha": "https://motozuni.com/motos/modelo/kymco-like-200i",
+    "ml": "https://listado.mercadolibre.com.ar/_q=kymco-like+200i&seller_id=motozuni"
+  },
+  {
+    "marca": "SYM",
+    "modelo": "Jet 14 200",
+    "cc": 168.9,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "sym-jet-14-200",
+    "ficha": "https://motozuni.com/motos/modelo/sym-jet-14-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=sym-jet+14+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Victoria 175",
+    "cc": 171.7,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "siam-victoria-175",
+    "ficha": "https://motozuni.com/motos/modelo/siam-victoria-175",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-victoria+175&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Cruiser X1",
+    "cc": 171,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "zanella-cruiser-x1",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-cruiser-x1",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-cruiser+x1&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Cruiser 200 ADV GT",
+    "cc": 172,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "zanella-cruiser-200-adv-gt",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-cruiser-200-adv-gt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-cruiser+200+adv+gt&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "180 S",
+    "cc": 175,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-180-s",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-180-s",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-180+s&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax 200",
+    "cc": 196,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-200",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "SMX 200 Adventure",
+    "cc": 197,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "gilera-smx-200-adventure",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smx-200-adventure",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smx+200+adventure&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Miracle 200",
+    "cc": 197,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "keller-miracle-200",
+    "ficha": "https://motozuni.com/motos/modelo/keller-miracle-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-miracle+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Keeway",
+    "modelo": "K-Light 202",
+    "cc": 197,
+    "seg": "CHOPPER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "keeway-k-light-202",
+    "ficha": "https://motozuni.com/motos/modelo/keeway-k-light-202",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keeway-k-light+202&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Steppa 200",
+    "cc": 197,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "siam-steppa-200",
+    "ficha": "https://motozuni.com/motos/modelo/siam-steppa-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-steppa+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Z-Max 200",
+    "cc": 197,
+    "seg": "UTILITARIO",
+    "img": "https://motozuni.com/images/catalogue/CUATRI-UTILITARIO.webp",
+    "slug": "zanella-z-max-200",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-z-max-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-z-max+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Tenax 200",
+    "cc": 197,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "siam-tenax-200",
+    "ficha": "https://motozuni.com/motos/modelo/siam-tenax-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-tenax+200&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "RTR 200 4V Carb",
+    "cc": 197.7,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "tvs-rtr-200-4v-carb",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-rtr-200-4v-carb",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-rtr+200+4v+carb&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "RTR 200 4V FI",
+    "cc": 197.7,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/GfDs25x5/fb6ec9defd1c.webp",
+    "slug": "tvs-rtr-200-4v-fi",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-rtr-200-4v-fi",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-rtr+200+4v+fi&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZR 200 OHC",
+    "cc": 197,
+    "seg": "ON OFF",
+    "img": "https://i.ibb.co/4gRZYBDR/d3cf2f1cf20a.webp",
+    "slug": "zanella-zr-200-ohc",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zr-200-ohc",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zr+200+ohc&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Sirius 190",
+    "cc": 198,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/d0fhyzmk/deec482c0bf2.webp",
+    "slug": "motomel-sirius-190",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-sirius-190",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-sirius+190&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser NS 200",
+    "cc": 199.5,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/RpBXRg0v/811147b24547.webp",
+    "slug": "bajaj-rouser-ns-200",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-ns-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+ns+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser NS 200 FI",
+    "cc": 199.5,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-rouser-ns-200-fi",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-ns-200-fi",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+ns+200+fi&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Saltus 200",
+    "cc": 200,
+    "seg": "ENDURO",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "siam-saltus-200",
+    "ficha": "https://motozuni.com/motos/modelo/siam-saltus-200",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-saltus+200&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax 250 R3",
+    "cc": 223,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-250-r3",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-250-r3",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+250+r3&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax 250 Adventure",
+    "cc": 223,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-250-adventure",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-250-adventure",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+250+adventure&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "SMX 250 Adventure",
+    "cc": 223,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "gilera-smx-250-adventure",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-smx-250-adventure",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-smx+250+adventure&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax TXR 250 L",
+    "cc": 223,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-txr-250-l",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-txr-250-l",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+txr+250+l&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "TD 250",
+    "cc": 223,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "mondial-td-250",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-td-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-td+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Skua 250",
+    "cc": 223,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "motomel-skua-250",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-skua-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-skua+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "XMM 250",
+    "cc": 223,
+    "seg": "ENDURO",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "motomel-xmm-250",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-xmm-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-xmm+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Motomel",
+    "modelo": "Skua 250 Adventure",
+    "cc": 223,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "motomel-skua-250-adventure",
+    "ficha": "https://motozuni.com/motos/modelo/motomel-skua-250-adventure",
+    "ml": "https://listado.mercadolibre.com.ar/_q=motomel-skua+250+adventure&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "ZR 250 LT",
+    "cc": 223,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "zanella-zr-250-lt",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-zr-250-lt",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-zr+250+lt&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Ceccato X 250",
+    "cc": 223,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-ceccato-x-250",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-ceccato-x-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-ceccato+x+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "G-Force 250",
+    "cc": 229,
+    "seg": "CUATRI",
+    "img": "https://motozuni.com/images/catalogue/CUATRI-UTILITARIO.webp",
+    "slug": "zanella-g-force-250",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-g-force-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-g-force+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Dominar D250",
+    "cc": 248.8,
+    "seg": "STREET",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-dominar-d250",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-dominar-d250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-dominar+d250&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TRK 251",
+    "cc": 249,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "benelli-trk-251",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-trk-251",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-trk+251&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser N250",
+    "cc": 249.07,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-rouser-n250",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-n250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+n250&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "Leoncino 250",
+    "cc": 249,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-leoncino-250",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-leoncino-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-leoncino+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Triax 250 Touring",
+    "cc": 249,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "corven-triax-250-touring",
+    "ficha": "https://motozuni.com/motos/modelo/corven-triax-250-touring",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-triax+250+touring&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "HD 250",
+    "cc": 249,
+    "seg": "CHOPPER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "mondial-hd-250",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-hd-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-hd+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Keller",
+    "modelo": "Quasar 250",
+    "cc": 250,
+    "seg": "ON OFF",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "keller-quasar-250",
+    "ficha": "https://motozuni.com/motos/modelo/keller-quasar-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keller-quasar+250&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Twins Roads 250",
+    "cc": 250,
+    "seg": "CUSTOM",
+    "img": "https://i.ibb.co/XrgmCDwD/D-NQ-NP-2-X-884301-MLA99630467115-112025-F.webp",
+    "slug": "siam-twins-roads-250",
+    "ficha": "https://motozuni.com/motos/modelo/siam-twins-roads-250",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-twins+roads+250&seller_id=motozuni"
+  },
+  {
+    "marca": "SYM",
+    "modelo": "Citycom S 300i",
+    "cc": 278.3,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/93yFdX0W/5c5be837636c.webp",
+    "slug": "sym-citycom-s-300i",
+    "ficha": "https://motozuni.com/motos/modelo/sym-citycom-s-300i",
+    "ml": "https://listado.mercadolibre.com.ar/_q=sym-citycom+s+300i&seller_id=motozuni"
+  },
+  {
+    "marca": "SYM",
+    "modelo": "Joyride 300i",
+    "cc": 278.3,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/ccVBpN5t/3b86523b855e.webp",
+    "slug": "sym-joyride-300i-300i",
+    "ficha": "https://motozuni.com/motos/modelo/sym-joyride-300i-300i",
+    "ml": "https://listado.mercadolibre.com.ar/_q=sym-joyride+300i&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Cruiser 300 ADV Extreme",
+    "cc": 278,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/MxvnmYZC/b81a34cb7b41.webp",
+    "slug": "zanella-cruiser-300-adv-extreme",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-cruiser-300-adv-extreme",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-cruiser+300+adv+extreme&seller_id=motozuni"
+  },
+  {
+    "marca": "CFMoto",
+    "modelo": "NK 300",
+    "cc": 292.4,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "cfmoto-nk-300",
+    "ficha": "https://motozuni.com/motos/modelo/cfmoto-nk-300",
+    "ml": "https://listado.mercadolibre.com.ar/_q=cfmoto-nk+300&seller_id=motozuni"
+  },
+  {
+    "marca": "CFMoto",
+    "modelo": "CL-X 300 Heritage",
+    "cc": 292,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "cfmoto-cl-x-300-heritage",
+    "ficha": "https://motozuni.com/motos/modelo/cfmoto-cl-x-300-heritage",
+    "ml": "https://listado.mercadolibre.com.ar/_q=cfmoto-cl-x+300+heritage&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "RZ 300 (CFMoto)",
+    "cc": 292.4,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-rz-300-cfmoto",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-rz-300-cfmoto",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-rz+300+(cfmoto)&seller_id=motozuni"
+  },
+  {
+    "marca": "Keeway",
+    "modelo": "V-Cruise 302 C",
+    "cc": 298,
+    "seg": "CUSTOM",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "keeway-v-cruise-302-c",
+    "ficha": "https://motozuni.com/motos/modelo/keeway-v-cruise-302-c",
+    "ml": "https://listado.mercadolibre.com.ar/_q=keeway-v-cruise+302+c&seller_id=motozuni"
+  },
+  {
+    "marca": "Morbidelli",
+    "modelo": "N300",
+    "cc": 298,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "morbidelli-n300",
+    "ficha": "https://motozuni.com/motos/modelo/morbidelli-n300",
+    "ml": "https://listado.mercadolibre.com.ar/_q=morbidelli-n300&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "302 S",
+    "cc": 300,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-302-s",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-302-s",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-302+s&seller_id=motozuni"
+  },
+  {
+    "marca": "TVS",
+    "modelo": "RR 310",
+    "cc": 312.2,
+    "seg": "SPORT",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "tvs-rr-310",
+    "ficha": "https://motozuni.com/motos/modelo/tvs-rr-310",
+    "ml": "https://listado.mercadolibre.com.ar/_q=tvs-rr+310&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Dominar D400 UG",
+    "cc": 373.3,
+    "seg": "STREET",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-dominar-d400-ug",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-dominar-d400-ug",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-dominar+d400+ug&seller_id=motozuni"
+  },
+  {
+    "marca": "Bajaj",
+    "modelo": "Rouser NS 400Z",
+    "cc": 373,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "bajaj-rouser-ns-400z",
+    "ficha": "https://motozuni.com/motos/modelo/bajaj-rouser-ns-400z",
+    "ml": "https://listado.mercadolibre.com.ar/_q=bajaj-rouser+ns+400z&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "Imperiale 400",
+    "cc": 374,
+    "seg": "CHOPPER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-imperiale-400",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-imperiale-400",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-imperiale+400&seller_id=motozuni"
+  },
+  {
+    "marca": "Siam",
+    "modelo": "Vector 400",
+    "cc": 378,
+    "seg": "STREET",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "siam-vector-400",
+    "ficha": "https://motozuni.com/motos/modelo/siam-vector-400",
+    "ml": "https://listado.mercadolibre.com.ar/_q=siam-vector+400&seller_id=motozuni"
+  },
+  {
+    "marca": "Jawa",
+    "modelo": "Daytona 400 Sidecar",
+    "cc": 396,
+    "seg": "CUSTOM",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "jawa-daytona-400-sidecar",
+    "ficha": "https://motozuni.com/motos/modelo/jawa-daytona-400-sidecar",
+    "ml": "https://listado.mercadolibre.com.ar/_q=jawa-daytona+400+sidecar&seller_id=motozuni"
+  },
+  {
+    "marca": "CFMoto",
+    "modelo": "NK 400",
+    "cc": 400.4,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "cfmoto-nk-400",
+    "ficha": "https://motozuni.com/motos/modelo/cfmoto-nk-400",
+    "ml": "https://listado.mercadolibre.com.ar/_q=cfmoto-nk+400&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "RZ 400 (CFMoto)",
+    "cc": 400.4,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-rz-400-cfmoto",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-rz-400-cfmoto",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-rz+400+(cfmoto)&seller_id=motozuni"
+  },
+  {
+    "marca": "Morbidelli",
+    "modelo": "M502N",
+    "cc": 486,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "morbidelli-m502n",
+    "ficha": "https://motozuni.com/motos/modelo/morbidelli-m502n",
+    "ml": "https://listado.mercadolibre.com.ar/_q=morbidelli-m502n&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Motori RTZ 500",
+    "cc": 486,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "zanella-motori-rtz-500",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-motori-rtz-500",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-motori+rtz+500&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Ceccato Roadster 500",
+    "cc": 486,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "zanella-ceccato-roadster-500",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-ceccato-roadster-500",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-ceccato+roadster+500&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TRK 502",
+    "cc": 500,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "benelli-trk-502",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-trk-502",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-trk+502&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "Leoncino 500",
+    "cc": 500,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-leoncino-500",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-leoncino-500",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-leoncino+500&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "502 C",
+    "cc": 500,
+    "seg": "CUSTOM",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-502-c",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-502-c",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-502+c&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TRK 502 X",
+    "cc": 500,
+    "seg": "ADVENTURE",
+    "img": "https://i.ibb.co/WpM2YFNY/ac20507ea16b.webp",
+    "slug": "benelli-trk-502-x",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-trk-502-x",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-trk+502+x&seller_id=motozuni"
+  },
+  {
+    "marca": "SYM",
+    "modelo": "Maxsym TL 508",
+    "cc": 508,
+    "seg": "SCOOTER",
+    "img": "https://i.ibb.co/qYSDV14x/686bebfa02ce.webp",
+    "slug": "sym-maxsym-tl-508",
+    "ficha": "https://motozuni.com/motos/modelo/sym-maxsym-tl-508",
+    "ml": "https://listado.mercadolibre.com.ar/_q=sym-maxsym+tl+508&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TNT 600i",
+    "cc": 600,
+    "seg": "NAKED",
+    "img": "https://i.ibb.co/0Rk729gP/c75b5cd3412c.webp",
+    "slug": "benelli-tnt-600i",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-tnt-600i",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-tnt+600i&seller_id=motozuni"
+  },
+  {
+    "marca": "CFMoto",
+    "modelo": "MT 650",
+    "cc": 649.3,
+    "seg": "ADVENTURE",
+    "img": "https://i.ibb.co/VYRNcc2X/963d4d67d640.webp",
+    "slug": "cfmoto-mt-650",
+    "ficha": "https://motozuni.com/motos/modelo/cfmoto-mt-650",
+    "ml": "https://listado.mercadolibre.com.ar/_q=cfmoto-mt+650&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "MT 650 (CFMoto)",
+    "cc": 649.3,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "zanella-mt-650-cfmoto",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-mt-650-cfmoto",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-mt+650+(cfmoto)&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TRK 702",
+    "cc": 698,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "benelli-trk-702",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-trk-702",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-trk+702&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "TRK 702 X",
+    "cc": 698,
+    "seg": "ADVENTURE",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+    "slug": "benelli-trk-702-x",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-trk-702-x",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-trk+702+x&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "Leoncino 800",
+    "cc": 754,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-leoncino-800",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-leoncino-800",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-leoncino+800&seller_id=motozuni"
+  },
+  {
+    "marca": "Benelli",
+    "modelo": "752 S",
+    "cc": 754,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "benelli-752-s",
+    "ficha": "https://motozuni.com/motos/modelo/benelli-752-s",
+    "ml": "https://listado.mercadolibre.com.ar/_q=benelli-752+s&seller_id=motozuni"
+  },
+  {
+    "marca": "Mondial",
+    "modelo": "Dax 70",
+    "cc": 70,
+    "seg": "DAX",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "mondial-dax-70",
+    "ficha": "https://motozuni.com/motos/modelo/mondial-dax-70",
+    "ml": "https://listado.mercadolibre.com.ar/_q=mondial-dax+70&seller_id=motozuni"
+  },
+  {
+    "marca": "Gilera",
+    "modelo": "VC 70",
+    "cc": 72,
+    "seg": "DAX",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "gilera-vc-70",
+    "ficha": "https://motozuni.com/motos/modelo/gilera-vc-70",
+    "ml": "https://listado.mercadolibre.com.ar/_q=gilera-vc+70&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "DX 70",
+    "cc": 72,
+    "seg": "DAX",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "corven-dx-70",
+    "ficha": "https://motozuni.com/motos/modelo/corven-dx-70",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-dx+70&seller_id=motozuni"
+  },
+  {
+    "marca": "Corven",
+    "modelo": "Expert 80",
+    "cc": 80,
+    "seg": "SCOOTER",
+    "img": "https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+    "slug": "corven-expert-80",
+    "ficha": "https://motozuni.com/motos/modelo/corven-expert-80",
+    "ml": "https://listado.mercadolibre.com.ar/_q=corven-expert+80&seller_id=motozuni"
+  },
+  {
+    "marca": "Zanella",
+    "modelo": "Hot 90",
+    "cc": 86,
+    "seg": "DAX",
+    "img": "https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+    "slug": "zanella-hot-90",
+    "ficha": "https://motozuni.com/motos/modelo/zanella-hot-90",
+    "ml": "https://listado.mercadolibre.com.ar/_q=zanella-hot+90&seller_id=motozuni"
+  },
+  {
+    "marca": "Suzuki",
+    "modelo": "AX 100",
+    "cc": 98,
+    "seg": "NAKED",
+    "img": "https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+    "slug": "suzuki-ax-100",
+    "ficha": "https://motozuni.com/motos/modelo/suzuki-ax-100",
+    "ml": "https://listado.mercadolibre.com.ar/_q=suzuki-ax+100&seller_id=motozuni"
+  }
+];
+
+// ── Specs técnicas por slugs conocidos (motor, transmisión, peso, tanque, frenos, potencia)
+const SPECS = {
+  "bajaj-boxer-ct-100":       {pot:"8.2 HP",trans:"4 vel.",peso:"112 kg",tanque:"8.5 L",frenos:"Tambor D/T",arranque:"Patada"},
+  "gilera-smash-110-vs-full": {pot:"7.5 HP",trans:"4 vel.",peso:"95 kg",tanque:"4.5 L",frenos:"Tambor D/T",arranque:"Eléc./Patada"},
+  "bajaj-boxer-150-at":       {pot:"14 HP",trans:"5 vel.",peso:"134 kg",tanque:"15 L",frenos:"Tambor D/T",arranque:"Eléc./Patada"},
+  "benelli-tnt-15":           {pot:"12 HP",trans:"5 vel.",peso:"130 kg",tanque:"12 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "bajaj-rouser-ns-200":      {pot:"24.5 HP",trans:"6 vel.",peso:"150 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "bajaj-rouser-ns-200-fi":   {pot:"24.5 HP",trans:"6 vel.",peso:"150 kg",tanque:"12 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "tvs-rtr-160-4v":           {pot:"16.8 HP",trans:"5 vel.",peso:"144 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "tvs-rtr-200-4v-fi":        {pot:"20.4 HP",trans:"5 vel.",peso:"152 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "tvs-rtr-200-4v-carb":      {pot:"20.4 HP",trans:"5 vel.",peso:"152 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "bajaj-rouser-ns-160":      {pot:"17.2 HP",trans:"5 vel.",peso:"149 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "bajaj-rouser-p150":        {pot:"14 HP",trans:"5 vel.",peso:"148 kg",tanque:"10.5 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "benelli-trk-502":          {pot:"47.5 HP",trans:"6 vel.",peso:"229 kg",tanque:"20 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-trk-502-x":        {pot:"47.5 HP",trans:"6 vel.",peso:"235 kg",tanque:"20 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-tnt-600i":         {pot:"85 HP",trans:"6 vel.",peso:"243 kg",tanque:"15.5 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-leoncino-250":     {pot:"25 HP",trans:"6 vel.",peso:"175 kg",tanque:"13.5 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "benelli-leoncino-500":     {pot:"47.5 HP",trans:"6 vel.",peso:"209 kg",tanque:"18 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-leoncino-800":     {pot:"80 HP",trans:"6 vel.",peso:"217 kg",tanque:"19 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-302-s":            {pot:"37 HP",trans:"6 vel.",peso:"187 kg",tanque:"15 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "benelli-imperiale-400":    {pot:"21 HP",trans:"5 vel.",peso:"188 kg",tanque:"12 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "benelli-trk-251":          {pot:"25.6 HP",trans:"6 vel.",peso:"190 kg",tanque:"17 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "benelli-trk-702":          {pot:"70 HP",trans:"6 vel.",peso:"229 kg",tanque:"20 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-trk-702-x":        {pot:"70 HP",trans:"6 vel.",peso:"235 kg",tanque:"20 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-180-s":            {pot:"17 HP",trans:"5 vel.",peso:"145 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "benelli-502-c":            {pot:"47.5 HP",trans:"6 vel.",peso:"218 kg",tanque:"18 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "benelli-752-s":            {pot:"80 HP",trans:"6 vel.",peso:"215 kg",tanque:"19 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "cfmoto-nk-300":            {pot:"29 HP",trans:"6 vel.",peso:"160 kg",tanque:"13.8 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "cfmoto-nk-400":            {pot:"44 HP",trans:"6 vel.",peso:"185 kg",tanque:"14.5 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "cfmoto-mt-650":            {pot:"61 HP",trans:"6 vel.",peso:"210 kg",tanque:"17.5 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "cfmoto-cl-x-300-heritage": {pot:"29 HP",trans:"6 vel.",peso:"168 kg",tanque:"13 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "corven-hunter-150-rt":     {pot:"10.5 HP",trans:"5 vel.",peso:"118 kg",tanque:"11 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "corven-hunter-150-full":   {pot:"10.5 HP",trans:"5 vel.",peso:"118 kg",tanque:"11 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "corven-triax-150":         {pot:"11 HP",trans:"5 vel.",peso:"120 kg",tanque:"11 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "corven-triax-200":         {pot:"16 HP",trans:"5 vel.",peso:"128 kg",tanque:"13 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "motomel-skua-150":         {pot:"11.4 HP",trans:"5 vel.",peso:"123 kg",tanque:"11.5 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "motomel-skua-150-silver":  {pot:"11.4 HP",trans:"5 vel.",peso:"125 kg",tanque:"11.5 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "motomel-skua-250":         {pot:"19 HP",trans:"5 vel.",peso:"138 kg",tanque:"13 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "motomel-sirius-190":       {pot:"16 HP",trans:"5 vel.",peso:"140 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "suzuki-gixxer-150i":       {pot:"14.6 HP",trans:"5 vel.",peso:"137 kg",tanque:"12 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "suzuki-ax-100":            {pot:"8.6 HP",trans:"4 vel.",peso:"87 kg",tanque:"4.7 L",frenos:"Tambor D/T",arranque:"Patada"},
+  "tvs-rr-310":               {pot:"34 HP",trans:"6 vel.",peso:"174 kg",tanque:"11 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "tvs-raider-125":           {pot:"11.38 HP",trans:"5 vel.",peso:"123 kg",tanque:"10 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "tvs-ntorq-125":            {pot:"9.4 HP",trans:"CVT",peso:"99 kg",tanque:"5.8 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "bajaj-dominar-d250":       {pot:"27 HP",trans:"6 vel.",peso:"175 kg",tanque:"13 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "bajaj-dominar-d400-ug":    {pot:"40 HP",trans:"6 vel.",peso:"182 kg",tanque:"13 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "bajaj-rouser-ns-400z":     {pot:"45 HP",trans:"6 vel.",peso:"175 kg",tanque:"12 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "bajaj-rouser-n250":        {pot:"24 HP",trans:"6 vel.",peso:"165 kg",tanque:"12 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "bajaj-rouser-ns-125":      {pot:"12 HP",trans:"5 vel.",peso:"135 kg",tanque:"12 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "kymco-agility-125":        {pot:"9.5 HP",trans:"CVT",peso:"100 kg",tanque:"6.1 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "kymco-like-125":           {pot:"9.3 HP",trans:"CVT",peso:"104 kg",tanque:"6 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "kymco-like-200i":          {pot:"14.7 HP",trans:"CVT",peso:"118 kg",tanque:"6.3 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "kymco-agility-city-200i":  {pot:"14.7 HP",trans:"CVT",peso:"115 kg",tanque:"6 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "sym-maxsym-tl-508":        {pot:"44.4 HP",trans:"CVT",peso:"209 kg",tanque:"13.8 L",frenos:"Disco D y T ABS",arranque:"Eléctrico"},
+  "gilera-smx-200-adventure": {pot:"16 HP",trans:"5 vel.",peso:"128 kg",tanque:"13 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "gilera-smx-250-adventure": {pot:"19 HP",trans:"5 vel.",peso:"138 kg",tanque:"13 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "gilera-sahel-150":         {pot:"11 HP",trans:"5 vel.",peso:"120 kg",tanque:"11 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "keeway-rk-150":            {pot:"11 HP",trans:"5 vel.",peso:"130 kg",tanque:"12 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "keeway-k-light-202":       {pot:"16 HP",trans:"5 vel.",peso:"150 kg",tanque:"12 L",frenos:"Disco D / Tambor T",arranque:"Eléctrico"},
+  "zanella-zr-200-ohc":       {pot:"16 HP",trans:"5 vel.",peso:"126 kg",tanque:"13 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "zanella-zr-150-ohc":       {pot:"11 HP",trans:"5 vel.",peso:"118 kg",tanque:"11 L",frenos:"Disco D y T",arranque:"Eléc./Patada"},
+  "zanella-cruiser-300-adv-extreme":{pot:"25 HP",trans:"CVT",peso:"185 kg",tanque:"11 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+  "sym-citycom-s-300i":       {pot:"25.1 HP",trans:"CVT",peso:"186 kg",tanque:"12.3 L",frenos:"Doble disco D / Disco T ABS",arranque:"Eléctrico"},
+  "sym-joyride-300i-300i":    {pot:"25.1 HP",trans:"CVT",peso:"181 kg",tanque:"12.3 L",frenos:"Disco D y T",arranque:"Eléctrico"},
+};
+
+// Placeholder img (usamos og:image de motozuni.com en base al segmento)
+const SEG_COLOR = {CUB:"#d4a853",NAKED:"#ff5b4d","ON OFF":"#3ddc84",ENDURO:"#4ca5ff",
+  SCOOTER:"#c084fc",ADVENTURE:"#fb923c",STREET:"#60a5fa",SPORT:"#f43f5e",
+  CUSTOM:"#a78bfa",CHOPPER:"#94a3b8",UTILITARIO:"#84cc16",DAX:"#fbbf24",CUATRI:"#f97316"};
+
+const FALLBACKimgs = {
+  CUB:"https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+  NAKED:"https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+  "ON OFF":"https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+  ENDURO:"https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+  SCOOTER:"https://motozuni.com/images/catalogue/MOTO-SCOOTER.webp",
+  ADVENTURE:"https://motozuni.com/images/catalogue/MOTO-ENDURO.webp",
+  STREET:"https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+  SPORT:"https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+  CUSTOM:"https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+  CHOPPER:"https://motozuni.com/images/catalogue/MOTO-CALLE.webp",
+  UTILITARIO:"https://motozuni.com/images/catalogue/CUATRI-UTILITARIO.webp",
+  DAX:"https://motozuni.com/images/catalogue/MOTO-ECONO.webp",
+  CUATRI:"https://motozuni.com/images/catalogue/CUATRI-UTILITARIO.webp",
+};
+
+let activeSeg = null;
+let activeBrand = null;
+let ccMin = 70, ccMax = 754;
+let selected = new Set();
+
+const segs = [...new Set(MOTOS.map(m=>m.seg))].sort();
+const brands = [...new Set(MOTOS.map(m=>m.marca))].sort();
+
+function buildSidebar(){
+  // segments
+  const sf = document.getElementById('segFilters');
+  [null,...segs].forEach(s=>{
+    const label = s ? s : 'Todos';
+    const count = s ? MOTOS.filter(m=>m.seg===s).length : MOTOS.length;
+    const d = document.createElement('div');
+    d.className='filter-item'+(activeSeg===s?' active':'');
+    d.innerHTML=`<span class="fi-dot"></span>${label}<span class="fi-count">${count}</span>`;
+    d.onclick=()=>{activeSeg=s;buildSidebar();render();};
+    sf.appendChild(d);
+  });
+  // cc presets
+  const presets=[[70,110,"≤110cc"],[111,150,"111–150cc"],[151,249,"151–249cc"],[250,400,"250–400cc"],[401,754,"401cc+"]];
+  const cp=document.getElementById('ccPresets');
+  cp.innerHTML='';
+  presets.forEach(([mn,mx,lbl])=>{
+    const d=document.createElement('div');
+    d.className='filter-item'+(ccMin===mn&&ccMax===mx?' active':'');
+    d.innerHTML=`<span class="fi-dot"></span>${lbl}`;
+    d.onclick=()=>{ccMin=mn;ccMax=mx;
+      document.getElementById('ccMin').value=mn;
+      document.getElementById('ccMax').value=mx;
+      updateCCLabels();buildSidebar();render();};
+    cp.appendChild(d);
+  });
+  // brands
+  const bf=document.getElementById('brandFilters');
+  bf.innerHTML='';
+  brands.forEach(b=>{
+    const count=MOTOS.filter(m=>m.marca===b).length;
+    const d=document.createElement('div');
+    d.className='filter-item'+(activeBrand===b?' active':'');
+    d.innerHTML=`<span class="fi-dot"></span>${b}<span class="fi-count">${count}</span>`;
+    d.onclick=()=>{activeBrand=(activeBrand===b)?null:b;buildSidebar();render();};
+    bf.appendChild(d);
+  });
+}
+
+function updateCC(){
+  let mn=parseInt(document.getElementById('ccMin').value);
+  let mx=parseInt(document.getElementById('ccMax').value);
+  if(mn>mx)[mn,mx]=[mx,mn];
+  ccMin=mn;ccMax=mx;
+  updateCCLabels();render();buildSidebar();
+}
+function updateCCLabels(){
+  document.getElementById('ccMinLabel').textContent=ccMin+' cc';
+  document.getElementById('ccMaxLabel').textContent=ccMax+' cc';
+}
+function resetAll(){
+  activeSeg=null;activeBrand=null;ccMin=70;ccMax=754;
+  document.getElementById('ccMin').value=70;
+  document.getElementById('ccMax').value=754;
+  document.getElementById('search').value='';
+  selected.clear();updateCmpCount();
+  updateCCLabels();buildSidebar();render();
+}
+
+function getFiltered(){
+  const q=(document.getElementById('search').value||'').toLowerCase();
+  let arr=MOTOS.filter(m=>{
+    if(activeSeg && m.seg!==activeSeg) return false;
+    if(activeBrand && m.marca!==activeBrand) return false;
+    if(m.cc<ccMin || m.cc>ccMax) return false;
+    if(q && !(m.marca.toLowerCase().includes(q)||m.modelo.toLowerCase().includes(q))) return false;
+    return true;
+  });
+  const sort=document.getElementById('sortSel').value;
+  if(sort==='az') arr.sort((a,b)=>(a.marca+a.modelo).localeCompare(b.marca+b.modelo));
+  if(sort==='ccasc') arr.sort((a,b)=>a.cc-b.cc);
+  if(sort==='ccdesc') arr.sort((a,b)=>b.cc-a.cc);
+  return arr;
+}
+
+function render(){
+  const arr=getFiltered();
+  const grid=document.getElementById('grid');
+  document.getElementById('rcount').innerHTML=
+    `<b>${arr.length}</b> modelos encontrados`;
+  if(!arr.length){
+    grid.innerHTML='<div class="empty">No hay motos que coincidan con los filtros.</div>';
+    return;
+  }
+  grid.innerHTML='';
+  arr.forEach(m=>{
+    const idx=MOTOS.indexOf(m);
+    const specs=SPECS[m.slug]||{};
+    const card=document.createElement('div');
+    card.className='card';
+    card.onclick=(e)=>{if(e.target.type==='checkbox')return;openPanel(idx);};
+    card.innerHTML=`
+      <div class="segtag">${m.seg}</div>
+      <div class="chk"><input type="checkbox" data-i="${idx}"
+        ${selected.has(idx)?'checked':''}
+        onclick="e=>e.stopPropagation()"
+        onchange="toggleSel(${idx},this)"></div>
+      <div class="imgwrap">
+        <img src="${m.img}" alt="${m.marca} ${m.modelo}" loading="lazy"
+          onerror="this.src='${FALLBACKimgs[m.seg]||FALLBACKimgs.NAKED}'">
+      </div>
+      <div class="cbody">
+        <div class="brandline">${m.marca}</div>
+        <h3>${m.modelo}</h3>
+        <div class="mini-specs">
+          <div>${m.cc} cc <b>${m.seg}</b></div>
+          <div>${specs.pot||'—'}</div>
+          <div>${specs.trans||'—'}</div>
+          <div>${specs.peso||'—'}</div>
+        </div>
+        <div class="card-actions">
+          <a class="cbtn primary" href="${m.ml}" target="_blank"
+            onclick="event.stopPropagation()">Ver en ML</a>
+          <span class="cbtn ghost" onclick="event.stopPropagation();openPanel(${idx})">Ver ficha</span>
+        </div>
+      </div>`;
+    grid.appendChild(card);
+  });
+}
+
+function toggleSel(i,el){
+  if(el.checked){
+    if(selected.size>=4){
+      alert('Podés comparar hasta 4 motos a la vez.');
+      el.checked=false;return;
+    }
+    selected.add(i);
+  } else selected.delete(i);
+  updateCmpCount();
+}
+function updateCmpCount(){
+  document.getElementById('cmpCount').textContent=selected.size;
+}
+
+// ── PANEL ──
+function openPanel(idx){
+  const m=MOTOS[idx];
+  const specs=SPECS[m.slug]||{};
+  const imgs=[m.img];
+  // main img
+  document.getElementById('pMainImg').src=m.img;
+  document.getElementById('pMainImg').alt=m.marca+' '+m.modelo;
+  // thumbs
+  const th=document.getElementById('pThumbs');
+  th.innerHTML='';
+  imgs.forEach((src,i)=>{
+    const d=document.createElement('div');
+    d.className='thumb'+(i===0?' active':'');
+    d.innerHTML=`<img src="${src}" loading="lazy"
+      onerror="this.src='${FALLBACKimgs[m.seg]||FALLBACKimgs.NAKED}'">`;
+    d.onclick=()=>{
+      document.getElementById('pMainImg').src=src;
+      th.querySelectorAll('.thumb').forEach(t=>t.classList.remove('active'));
+      d.classList.add('active');
+    };
+    th.appendChild(d);
+  });
+  // info
+  const specsRows=[
+    ["Cilindrada",m.cc+" cc"],
+    ["Segmento",m.seg],
+    ["Potencia",specs.pot||"—"],
+    ["Transmisión",specs.trans||"—"],
+    ["Peso",specs.peso||"—"],
+    ["Tanque",specs.tanque||"—"],
+    ["Frenos",specs.frenos||"—"],
+    ["Arranque",specs.arranque||"—"],
+  ];
+  const color=SEG_COLOR[m.seg]||'#d4a853';
+  document.getElementById('pInfo').innerHTML=`
+    <div>
+      <div class="pi-seg" style="color:${color}">${m.seg}</div>
+      <div class="pi-brand">${m.marca}</div>
+      <div class="pi-name">${m.modelo}</div>
+      <div class="pi-cc">${m.cc} cc · Motor monocilíndrico 4T</div>
+    </div>
+    <div class="pi-divider"></div>
+    <div class="specs-table">${specsRows.map(([l,v])=>`
+      <div class="spec-item"><div class="sl">${l}</div><div class="sv">${v}</div></div>`).join('')}
+    </div>
+    <div class="pi-divider"></div>
+    <div class="pi-actions">
+      <a class="pibtn ml" href="${m.ml}" target="_blank">🛒 Ver en Mercado Libre</a>
+      <a class="pibtn fi" href="${m.ficha}" target="_blank">📄 Ficha oficial MotoZuni</a>
+      <label class="cmp-toggle">
+        <input type="checkbox" ${selected.has(idx)?'checked':''}
+          onchange="toggleSelPanel(${idx},this)">
+        Agregar al comparador <span style="color:var(--muted2)">(${selected.size}/4)</span>
+      </label>
+    </div>`;
+  document.getElementById('panelOverlay').classList.add('show');
+}
+function toggleSelPanel(i,el){
+  if(el.checked){
+    if(selected.size>=4){alert('Máximo 4 motos.');el.checked=false;return;}
+    selected.add(i);
+  } else selected.delete(i);
+  updateCmpCount();render();
+}
+function closePanel(){document.getElementById('panelOverlay').classList.remove('show');}
+function closePanelIfBG(e){if(e.target.id==='panelOverlay')closePanel();}
+
+// ── COMPARADOR ──
+function openCompare(){
+  if(selected.size<2){alert('Seleccioná al menos 2 motos (tildá el check en cada tarjeta).');return;}
+  const list=[...selected].map(i=>MOTOS[i]);
+  const rows=[
+    ["Imagen",m=>`<img src="${m.img}" alt="${m.modelo}">`],
+    ["Marca",m=>m.marca],
+    ["Modelo",m=>`<b>${m.modelo}</b>`],
+    ["Segmento",m=>m.seg],
+    ["Cilindrada",m=>m.cc+" cc"],
+    ["Potencia",m=>(SPECS[m.slug]||{}).pot||"—"],
+    ["Transmisión",m=>(SPECS[m.slug]||{}).trans||"—"],
+    ["Peso",m=>(SPECS[m.slug]||{}).peso||"—"],
+    ["Tanque",m=>(SPECS[m.slug]||{}).tanque||"—"],
+    ["Frenos",m=>(SPECS[m.slug]||{}).frenos||"—"],
+    ["Arranque",m=>(SPECS[m.slug]||{}).arranque||"—"],
+    ["",m=>`<a class="cbtn primary" style="display:inline-block;padding:7px 14px;text-decoration:none;border-radius:8px;font-size:12px;font-weight:800;background:var(--accent);color:#fff" href="${m.ml}" target="_blank">Ver en ML</a>`],
+  ];
+  let html=`<div style="overflow:auto"><table class="cmp-table">
+    <tr><th>Especificación</th>${list.map(m=>`<th>${m.marca} ${m.modelo}</th>`).join('')}</tr>`;
+  rows.forEach(([lbl,fn])=>{
+    html+=`<tr><td class="lbl">${lbl}</td>${list.map(m=>`<td>${fn(m)}</td>`).join('')}</tr>`;
+  });
+  html+='</table></div>';
+  document.getElementById('cmpContent').innerHTML=html;
+  document.getElementById('cmpOverlay').classList.add('show');
+}
+function closeCompare(){document.getElementById('cmpOverlay').classList.remove('show');}
+function closeCmpIfBG(e){if(e.target.id==='cmpOverlay')closeCompare();}
+
+// Init
+updateCCLabels();
+buildSidebar();
+render();
+</script>
+</body>
+</html>
